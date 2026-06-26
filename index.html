@@ -11,7 +11,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js">
     </script>
     <style>
-        /* ===== БАЗОВЫЕ СТИЛИ ===== */
+        /* ===== БАЗОВЫЕ СТИЛИ (полностью из предыдущей версии) ===== */
         * {
             margin: 0;
             padding: 0;
@@ -83,7 +83,7 @@
             padding: 0 24px;
         }
 
-        /* ===== АНИМАЦИИ ===== */
+        /* ===== АНИМАЦИИ (без изменений) ===== */
         @keyframes fadeSlideUp {
             from { opacity: 0; transform: translateY(30px); }
             to { opacity: 1; transform: translateY(0); }
@@ -1932,7 +1932,7 @@
                     <!-- Шаг 2 -->
                     <div class="booking-step" data-step="2">
                         <div class="step-title">Выберите время</div>
-                        <div class="step-desc">Когда вам удобно? <strong>Максимум 1 сеанс в день.</strong> Минимальная длительность 10 минут.</div>
+                        <div class="step-desc">Когда вам удобно? <strong>Максимум 1 сеанс в день.</strong> Минимальная длительность 10 минут, максимум 60 минут.</div>
                         <div class="booking-grid">
                             <div class="booking-field">
                                 <label for="bookingDate">Дата</label>
@@ -1944,8 +1944,8 @@
                             </div>
                             <div class="booking-field full">
                                 <label for="bookingDuration">Длительность (мин)</label>
-                                <input type="number" id="bookingDuration" min="10" max="120" value="30" oninput="validateStep2(); updateSummary()" />
-                                <span class="hint">⏱ <span id="freeMinHint">5</span> минут бесплатно, от 10 до 120 минут. Цена: <span id="priceMinHint">0.20</span> BYN/мин</span>
+                                <input type="number" id="bookingDuration" min="10" max="60" value="30" oninput="validateStep2(); updateSummary()" />
+                                <span class="hint">⏱ <span id="freeMinHint">5</span> минут бесплатно, от 10 до 60 минут. Цена: <span id="priceMinHint">0.20</span> BYN/мин</span>
                             </div>
                         </div>
                         <div class="step-actions">
@@ -2018,7 +2018,7 @@
                         </div>
                         <div class="step-actions">
                             <button class="btn btn-secondary" onclick="prevStep(3)">← Назад</button>
-                            <button class="btn btn-success" onclick="confirmBooking()">
+                            <button class="btn btn-success" id="confirmBookingBtn" onclick="confirmBooking()">
                                 <i class="fas fa-check"></i> Подтвердить запись
                             </button>
                         </div>
@@ -2092,7 +2092,6 @@
                     <div class="admin-title"><i class="fas fa-crown"></i> Администрирование</div>
                     <div class="admin-sub">Управление ценами, промокодами и настройками</div>
 
-                    <!-- Управление ценами -->
                     <div class="admin-section">
                         <h4>Настройка цен</h4>
                         <div class="admin-grid">
@@ -2111,7 +2110,6 @@
                         <div id="configStatus" style="margin-top: 8px; font-size: 0.9rem; color: var(--text-secondary);"></div>
                     </div>
 
-                    <!-- Управление промокодами -->
                     <div class="admin-section">
                         <h4>Создать промокод</h4>
                         <div class="admin-grid">
@@ -2138,7 +2136,6 @@
                         <div id="promoStatusAdmin" style="margin-top: 8px; font-size: 0.9rem; color: var(--text-secondary);"></div>
                     </div>
 
-                    <!-- Список промокодов -->
                     <div class="admin-section">
                         <h4>Активные промокоды</h4>
                         <div id="promoListAdmin" style="font-size: 0.95rem; color: var(--text-secondary);">Загрузка...</div>
@@ -2323,7 +2320,7 @@
         }
 
         // ============================================================
-        // ===== СЕССИЯ И АВТОРИЗАЦИЯ (с кешированием пользователя) =====
+        // ===== СЕССИЯ И АВТОРИЗАЦИЯ =====
         // ============================================================
         function setCookie(name, value, days) {
             const expires = new Date(Date.now() + days * 864e5).toUTCString();
@@ -2346,7 +2343,6 @@
 
         function loginUser(username, userData) {
             const token = Math.random().toString(36).substring(2) + Date.now().toString(36);
-            // Кука на 10 лет (3650 дней)
             setCookie('session_token', token, 3650);
             localStorage.setItem('session_user', username);
             if (userData) {
@@ -2415,14 +2411,12 @@
             document.getElementById('mainContent').classList.add('active');
             document.getElementById('mainNavbar').style.display = 'flex';
 
-            // Показываем/скрываем админские вкладки
             const isAdmin = (currentUser === 'Dzmitry');
             document.getElementById('adminTabLink').style.display = isAdmin ? 'inline-block' : 'none';
             document.getElementById('footerAdminLink').style.display = isAdmin ? 'inline-block' : 'none';
             document.getElementById('allBookingsTabLink').style.display = isAdmin ? 'inline-block' : 'none';
             document.getElementById('footerAllBookingsLink').style.display = isAdmin ? 'inline-block' : 'none';
 
-            // Если администратор и вкладка "Записи" активна — загружаем данные
             if (isAdmin && document.getElementById('tab-bookings').classList.contains('active')) {
                 loadAllBookings();
             }
@@ -2453,7 +2447,6 @@
                     container.innerHTML = '<div class="no-bookings">Нет записей</div>';
                     return;
                 }
-                // Сортируем по дате (новые сверху)
                 const bookings = data.bookings.slice().sort((a, b) => {
                     return new Date(b.created_at) - new Date(a.created_at);
                 });
@@ -2503,9 +2496,6 @@
             }
         }
 
-        // ============================================================
-        // ===== УПРАВЛЕНИЕ ЗАПИСЯМИ (АДМИН) =====
-        // ============================================================
         async function cancelBooking(id) {
             if (!confirm('Вы уверены, что хотите отменить запись #' + id + '?')) return;
             try {
@@ -2516,29 +2506,26 @@
                 booking.status = 'cancelled';
                 await updateFile(FILES.bookings, data);
                 alert('Запись отменена!');
-                loadAllBookings(); // обновить таблицу
+                loadAllBookings();
             } catch (e) {
                 alert('Ошибка: ' + e.message);
             }
         }
 
         async function editBooking(id) {
-            // Просто для примера — можно открыть модалку с редактированием, но пока покажем информацию
             try {
                 const data = await getFileContent(FILES.bookings);
                 if (!data || !data.bookings) return;
                 const booking = data.bookings.find(b => b.id === id);
                 if (!booking) { alert('Запись не найдена'); return; }
-                // В будущем можно сделать форму редактирования
                 alert(`Редактирование записи #${id}\n\nТекущие данные:\nДата: ${booking.date}\nВремя: ${booking.time}\nКлиент: ${booking.name || booking.username}\nУслуга: ${booking.service}\nДлительность: ${booking.duration}\nСтоимость: ${booking.cost}`);
-                // Здесь можно реализовать модальное окно для изменения
             } catch (e) {
                 alert('Ошибка: ' + e.message);
             }
         }
 
         // ============================================================
-        // ===== АВТОРИЗАЦИЯ (регистрация/вход) =====
+        // ===== АВТОРИЗАЦИЯ =====
         // ============================================================
         let authMode = 'register';
         let authCode = '';
@@ -2630,7 +2617,6 @@
             const username = document.getElementById('authUsername').value.trim();
             const email = document.getElementById('authEmail').value.trim();
             const password = document.getElementById('authPassword').value;
-            const status = document.getElementById('authStatus');
 
             if (!authCodeSent) {
                 if (!username || !password) {
@@ -2639,12 +2625,10 @@
                 }
 
                 let usersData = await getFileContent(FILES.users);
-                console.log('📥 usersData:', usersData);
                 if (!usersData || !usersData.users) {
                     usersData = { users: [] };
                 }
                 const users = usersData.users;
-                console.log('📥 Найдено пользователей:', users.length);
 
                 if (authMode === 'register') {
                     if (!email) { showAuthStatus('Введите электронную почту', 'error'); return; }
@@ -2659,7 +2643,6 @@
                     tempUserData = { username, email, password };
                 } else {
                     const user = users.find(u => u.username === username);
-                    console.log('📥 Ищем пользователя:', username, 'Найден:', user);
                     if (!user) {
                         showAuthStatus('Пользователь не найден', 'error');
                         return;
@@ -2992,7 +2975,7 @@
         }
 
         // ============================================================
-        // ===== АБОНЕМЕНТЫ (локально) =====
+        // ===== АБОНЕМЕНТЫ =====
         // ============================================================
         const SUBSCRIPTION_KEY = 'active_subscription';
 
@@ -3087,12 +3070,24 @@
         }
 
         // ============================================================
-        // ===== ЗАПИСЬ =====
+        // ===== ЗАПИСЬ (ОСНОВНАЯ ЛОГИКА) =====
         // ============================================================
         let currentStep = 1;
         let bookingData = { service: 'classic', date: '', time: '', duration: 30, name: '', phone: '', comment: '', promo: null };
         let appliedPromo = null;
         const serviceNames = { classic: 'Классический', sport: 'Спортивный', aroma: 'Релакс-арома', point: 'Точечный' };
+
+        // При выборе услуги "Классический" устанавливаем длительность 30 мин
+        function selectBookingService(service) {
+            document.querySelectorAll('.booking-step[data-step="1"] .service-card').forEach(el => el.classList.remove('selected'));
+            document.querySelector(`.booking-step[data-step="1"] .service-card[data-service="${service}"]`).classList.add('selected');
+            bookingData.service = service;
+            if (service === 'classic') {
+                document.getElementById('bookingDuration').value = 30;
+                updateSummary();
+                validateStep2();
+            }
+        }
 
         function updateProgress() {
             const steps = document.querySelectorAll('.progress-steps .step');
@@ -3128,13 +3123,17 @@
             if (currentStep === 1) {
                 const selected = document.querySelector('.booking-step[data-step="1"] .service-card.selected');
                 if (selected) bookingData.service = selected.dataset.service;
+                // Устанавливаем длительность для классического
+                if (bookingData.service === 'classic') {
+                    document.getElementById('bookingDuration').value = 30;
+                }
             }
             if (currentStep === 2) {
                 bookingData.date = document.getElementById('bookingDate').value;
                 bookingData.time = document.getElementById('bookingTime').value;
                 bookingData.duration = parseInt(document.getElementById('bookingDuration').value) || 30;
                 if (!bookingData.date || !bookingData.time) { alert('⚠️ Выберите дату и время'); return; }
-                if (bookingData.duration < 10) { alert('Минимальная длительность 10 минут'); return; }
+                if (bookingData.duration < 10 || bookingData.duration > 60) { alert('Длительность должна быть от 10 до 60 минут'); return; }
             }
             if (currentStep === 3) {
                 bookingData.name = document.getElementById('bookingName').value.trim();
@@ -3148,16 +3147,12 @@
 
         function prevStep(step) { showStep(step); }
 
-        function selectBookingService(service) {
-            document.querySelectorAll('.booking-step[data-step="1"] .service-card').forEach(el => el.classList.remove('selected'));
-            document.querySelector(`.booking-step[data-step="1"] .service-card[data-service="${service}"]`).classList.add('selected');
-            bookingData.service = service;
-        }
-
         function validateStep2() {
             const date = document.getElementById('bookingDate').value;
             const time = document.getElementById('bookingTime').value;
-            document.getElementById('step2Next').disabled = !(date && time);
+            const duration = parseInt(document.getElementById('bookingDuration').value);
+            const btn = document.getElementById('step2Next');
+            btn.disabled = !(date && time && duration >= 10 && duration <= 60);
         }
 
         function validateStep3() {
@@ -3169,7 +3164,7 @@
         }
 
         function updateSummary() {
-            const duration = Math.max(10, Math.min(120, parseInt(document.getElementById('bookingDuration').value) || 10));
+            const duration = Math.max(10, Math.min(60, parseInt(document.getElementById('bookingDuration').value) || 10));
             document.getElementById('bookingDuration').value = duration;
             const freeMinutes = configData.free_minutes || 5;
             const paidMinutes = Math.max(0, duration - freeMinutes);
@@ -3305,10 +3300,10 @@
             const service = serviceNames[bookingData.service] || bookingData.service;
             const today = new Date().toISOString().split('T')[0];
 
+            // Проверка на 1 сеанс в день
             let statsData = await getFileContent(FILES.stats);
             if (!statsData) statsData = {};
             const userStats = statsData[currentUser] || { visits: 0, totalMinutes: 0, totalSpent: 0, promoCodesUsed: 0, history: [] };
-
             if (userStats.history && userStats.history.length > 0) {
                 const last = userStats.history[userStats.history.length - 1];
                 if (last.date && last.date.startsWith(today)) {
@@ -3351,6 +3346,7 @@
                 }
             }
 
+            // Обновление статистики
             userStats.visits += 1;
             userStats.totalMinutes += bookingData.duration;
             userStats.totalSpent += totalPrice;
@@ -3363,7 +3359,6 @@
                 promo: usedPromo || (subUsed ? 'Абонемент' : '-')
             });
             statsData[currentUser] = userStats;
-
             try {
                 await updateFile(FILES.stats, statsData);
             } catch (e) {
@@ -3371,6 +3366,7 @@
                 return;
             }
 
+            // Сохранение записи в bookings.json
             let bookingsData = await getFileContent(FILES.bookings);
             if (!bookingsData || !bookingsData.bookings) bookingsData = { bookings: [] };
             const newBooking = {
@@ -3395,6 +3391,7 @@
                 console.warn('Ошибка сохранения записи в bookings.json, но статистика сохранена:', e);
             }
 
+            // Бонусный промокод (10% шанс)
             let bonusMessage = '';
             if (Math.random() < 0.1) {
                 const newPromo = 'PROMO' + String(Math.floor(1000 + Math.random() * 9000));
@@ -3417,20 +3414,21 @@
                 }
             }
 
+            // Сброс применённого промокода
             appliedPromo = null;
             document.getElementById('promoInput').value = '';
             document.getElementById('promoStatus').textContent = '💡 Доступные промокоды: ' + promoCodes.filter(p => p.active).map(p => p.code).join(', ');
             document.getElementById('promoSection').classList.remove('success');
 
-            const msg = `✅ Запись подтверждена!\n\n` +
+            alert(`✅ Запись подтверждена!\n\n` +
                 `Услуга: ${service}\nДата: ${bookingData.date}\nВремя: ${bookingData.time}\n` +
                 `Длительность: ${bookingData.duration} мин\nСтоимость: ${totalPrice.toFixed(2)} BYN\n` +
                 `${usedPromo ? 'Промокод: ' + usedPromo : ''}${subUsed ? ' (по абонементу)' : ''}\n` +
                 `${bookingData.comment ? 'Комментарий: ' + bookingData.comment : ''}\n\n` +
-                `Спасибо за выбор нашей студии!${bonusMessage}`;
+                `Спасибо за выбор нашей студии!${bonusMessage}`
+            );
 
-            alert(msg);
-
+            // Сброс формы записи
             const todayDate = new Date().toISOString().split('T')[0];
             document.getElementById('bookingDate').value = todayDate;
             document.getElementById('bookingDate').min = todayDate;
@@ -3553,7 +3551,22 @@
 
             document.getElementById('bookingDate').addEventListener('change', validateStep2);
             document.getElementById('bookingTime').addEventListener('change', validateStep2);
+            document.getElementById('bookingDuration').addEventListener('input', function() {
+                validateStep2();
+                updateSummary();
+            });
             document.getElementById('bookingName').addEventListener('input', validateStep3);
+
+            // Автоматическая установка 30 минут при выборе классического массажа на шаге 1
+            document.querySelectorAll('.booking-step[data-step="1"] .service-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    if (this.dataset.service === 'classic') {
+                        document.getElementById('bookingDuration').value = 30;
+                        updateSummary();
+                        validateStep2();
+                    }
+                });
+            });
         });
     </script>
 
